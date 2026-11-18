@@ -4,57 +4,65 @@ SortPhotos is a Python script that organizes photos into folders by date and/or 
 
 ![Example](example.png)
 
+# Installation
+
+SortPhotos requires Python 3.10 or newer.  From a checkout of this repository:
+
+    pip install .
+
+This installs the `sortphotos` command (and its one dependency, [ExifRead](https://pypi.org/project/ExifRead/)).  You can also run it as a module with `python -m sortphotos`.
+
 # Usage
 
 SortPhotos is intended to be used primarily from the command line.  To see all the options, invoke help
 
-    python sortphotos.py -h
+    sortphotos -h
 
 The simplest usage is to specify a source directory (the directory where your mess of files is currently located---it will be searched recursively) and a destination directory (where you want the files and directories to go).
 
-    python sortphotos.py /Users/Me/MessyDirectory /Users/Me/Pictures
+    sortphotos /Users/Me/MessyDirectory /Users/Me/Pictures
 
 ## move rather than copy
 There are several options that can be invoked.  For example the default behavior is to copy files from your source directory to your destination directory.  That is useful, for example, if you're copying files from your camera.  However, if you just want to organize existing files on your computer it's **much** faster to move the files rather than copy them (especially if videos are involved).  This is done with the ``-m`` or ``--move`` flag.
 
-    python sortphotos.py -m /source /destination
+    sortphotos -m /source /destination
 
 ## sort in directories
-By default folders are sorted by year then month, with both the month number and name.  So for example if cool_picture.jpg was taken on June 1, 2010 the resulting directory hierarchy will look like: 2010 > 06-Jun > cool_picture.jpg.  However, you can customize the sorting style almost anyway you want.  The script takes an optional argument ``-s`` or ``--sort``, which accepts a format string using the conventions described [here](https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior).  To separate by subdirectory, just use a forward slash (even if you are on Windows).    So for example, the default sorting behavior (2010/06-Jun) is equivalent to:
+By default folders are sorted by year then month, with both the month number and name.  So for example if cool_picture.jpg was taken on June 1, 2010 the resulting directory hierarchy will look like: 2010 > 06-Jun > cool_picture.jpg.  However, you can customize the sorting style almost anyway you want.  The script takes an optional argument ``-s`` or ``--sort``, which accepts a format string using the conventions described [here](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior).  To separate by subdirectory, just use a forward slash (even if you are on Windows).    So for example, the default sorting behavior (2010/06-Jun) is equivalent to:
 
-    python sortphotos.py --sort %Y/%m-%b
+    sortphotos --sort %Y/%m-%b /source /destination
 
  Or you could sort just by month, but with the month full name (June):
 
-    python sortphotos.py --sort %B
+    sortphotos --sort %B
 
 Or you can sort by year without century, then week number, then an abbreviated day of the week (10/23/Sun)
 
-    python sortphotos.py --sort %y/%U/%a
+    sortphotos --sort %y/%U/%a
 
 The possibilities go on and on.
 
 ## duplicate removal
 SortPhotos will *always* check to make sure something with the same file name doesn't already exist where it's trying to write, so that you don't unintentionally overwrite a file. It this occurs it will append a number on the end of the file.  So for example if photo.jpg was taken on June 1, 2010 but 2010 > June > photo.jpg already exists then the new file will be copied as photo_1.jpg and so on.  SortPhotos will go one step further and if it finds a file of the same name, it will then run a file compare to see if the files are actually the same.  If they are *exactly* the same, it will just skip the copy (or move) operation.  This will prevent you from having duplicate files.  However you have the option of turning this off (not the name comparison, that will always happen, just the weeding out of duplicates).  This option would be useful, for example, if you are copying over a bunch of new photos that you are sure don't already exist in your organized collection of photos.  It's a little faster to skip duplicate detection.   Invoke the option ``--keep-duplicates`` in order to skip duplicate detection.
 
-    python sortphotos.py --keep-duplicates /source /destination
+    sortphotos --keep-duplicates /source /destination
 
 ## choose which file types to search for
-You can restrict what types of files SortPhotos looks for in your source directory.  By default it only looks for the most common photo and video containers ('jpg', 'jpeg', 'tiff', 'arw', 'avi', 'mov', 'mp4', 'mts').  You can change this behavior through the ``extensions`` argument.  Note that it is not case sensitive so if you specify 'jpg' as an extension it will search for both jpg and JPG files or even jPg files.  For example say you want to copy and sort only the *.gif and *.avi files you would call
+You can restrict what types of files SortPhotos looks for in your source directory.  By default it only looks for the most common photo and video containers ('jpg', 'jpeg', 'tiff', 'arw', 'avi', 'mov', 'mp4', 'mts', 'dng').  You can change this behavior through the ``extensions`` argument.  Note that it is not case sensitive so if you specify 'jpg' as an extension it will search for both jpg and JPG files or even jPg files.  For example say you want to copy and sort only the *.gif and *.avi files you would call
 
-    python sortphotos.py /source /destination --extensions gif avi
+    sortphotos /source /destination --extensions gif avi
 
 If you only want to sort the files that (potentially) have EXIF data then
 
-    python sortphotos.py /source /destination --extensions jpg tiff
+    sortphotos /source /destination --extensions jpg tiff
 
 You may want to use this for files that aren't photos or videos at all
 
-    python sortphotos.py /source /destination --extensions docx xlsx pptx
+    sortphotos /source /destination --extensions docx xlsx pptx
 
 To sort every possible file type
 
-    python sortphotos.py /source /destination --extensions *
+    sortphotos /source /destination --extensions '*'
 
 However, this option will copy even hidden files like .DS_Store.
 
@@ -66,11 +74,27 @@ If you are taking photos for an event that goes past midnight, you might want th
 ``--day-begins 4``  
 The argument to the flag should be an integer between 0-23 corresponding to the hours of the day starting at midnight.
 
+## rename files
+Files can be renamed after the date they were taken with ``--rename``.  The argument is a pattern where ``%s`` is replaced with the date (formatted like ``Jun 01 13-14-15 2010``); the original extension is kept.
+
+    sortphotos --rename "Holiday %s" /source /destination
+
+turns ``IMG_0001.JPG`` taken on June 1, 2010 at 13:14:15 into ``Holiday Jun 01 13-14-15 2010.JPG``.  Name collisions are handled exactly as described above.
+
+# Development
+
+Install the development dependencies and run the checks:
+
+    pip install -e ".[dev]"
+    pytest
+    ruff check . && ruff format --check .
+    mypy
+
 # Automation
 
-*Note while sortphotos.py was written in a cross-platform way, the following instructions for automation are specific to OS X.  For other operating systems there are of course ways to schedule tasks or submit cron jobs, but I will leave that as an exercise to the reader.*
+*Note while sortphotos was written in a cross-platform way, the following instructions for automation are specific to OS X.  For other operating systems there are of course ways to schedule tasks or submit cron jobs, but I will leave that as an exercise to the reader.*
 
-An an optional setup, I like to automate the process of moving my photos.  This can be accomplished simply on OS X using Launch Agents.  First edit the supplied plist file ``com.andrewning.sortphotos.plist`` in any text editor.  On line 10 enter the **full path** of where ``sortphotos.py`` is stored.  On line 12 enter the full path of your source directory (I use the [PhotoSync iOS App](http://www.photosync-app.com) to transfer photos from my phone to my computer so they all end up in folder called PhotoSync, but this can be any folder you like).  One line 13 enter the full path of the destination top level directory (e.g., ``/Users/Me/Pictures``).  Finally, on line 16 you can change how often the script will run (in seconds).  I have it set to run once a day, but you can set it to whatever you like.
+An an optional setup, I like to automate the process of moving my photos.  This can be accomplished simply on OS X using Launch Agents.  First edit the supplied plist file ``com.andrewning.sortphotos.plist`` in any text editor.  On line 9 enter the **full path** of the installed ``sortphotos`` command (``which sortphotos`` will tell you).  On line 11 enter the full path of your source directory (I use the [PhotoSync iOS App](http://www.photosync-app.com) to transfer photos from my phone to my computer so they all end up in folder called PhotoSync, but this can be any folder you like).  On line 12 enter the full path of the destination top level directory (e.g., ``/Users/Me/Pictures``).  Finally, on line 15 you can change how often the script will run (in seconds).  I have it set to run once a day, but you can set it to whatever you like.
 
 Now move the plist file to ``~/Library/LaunchAgents/``.  Switch to that directory and load it
 

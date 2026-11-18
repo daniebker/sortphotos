@@ -6,13 +6,12 @@
     <string>com.andrewning.sortphotos</string>
     <key>ProgramArguments</key>
     <array>
-	<string>python</string>
-        <string>/usr/local/bin/sortphotos.py</string>  <!-- full path to sortphotos.py -->
+        <string>/usr/local/bin/sortphotos</string>  <!-- full path to the installed sortphotos command (see `which sortphotos`) -->
         <string>-m</string>
         <string>/Users/Me/Pictures/DumpHere</string>  <!-- full path to source directory -->
         <string>/Users/Me/Pictures</string>  <!-- full path to destination directory -->
     </array>
     <key>StartInterval</key>
-    <integer>86400</integer>  <!-- how often sortphotos.py should execute (in seconds) -->
+    <integer>86400</integer>  <!-- how often sortphotos should execute (in seconds) -->
 </dict>
 </plist>
